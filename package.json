@@ -1,6 +1,6 @@
 {
   "name": "intersection-splitter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Split intersections out of sets into connected nodes.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
