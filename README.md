@@ -8,12 +8,12 @@ For different usage scenarios there are three different functions:
 - `BiggestIntersectionsSplitter` - The method `splitSets` splits all elements by intersections with most elements first. For this class natural sorting
   of the elements or a sorting function can accelerate the splitting.
 - `WeightedIntersectionsSplitter` - The method `splitSets` splits all elements by two weight functions, which are applied on the element count of each
-  intersection and on the sets count which have this intersection. The set count can be not accurate when intersections include other intersections, but
+  intersection and on the sets count which have this intersection. The set count may be not accurate when intersections include other intersections, but
   provides a reasonable second weight without increasing the complexity too much. This class needs a bijective mapping from the elements in any array to
   a primitive type.
   
 Each of these functions can also be used with an array of arrays. The function `splitIntersectionsShallow` can be used as is, the Classes have the method of
-`splitArrays`. These functions will return `ArrayNodes` instead of `SetNodes`.
+`splitArrays`. These calls will return `ArrayNodes` instead of `SetNodes`.
 
 #### Intersecting shallow
 ```ts
@@ -110,7 +110,7 @@ setNodes === [
         depth: 1,
         imports: [],
     },
-];
+]; // true
 // get statistics for the generated nodes
 const metrics = new GetNodeMetrics().getNodeMetrics(setNodes);
 
@@ -125,7 +125,7 @@ metrics === {
     rootNodes: 3,
     elementsCount: 9,
     uniqueElements: 5,
-};
+}; // true
 
 ```
 #### Intersecting with join/split function and weight functions
@@ -148,8 +148,12 @@ const arrayJoiner: ArrayJoiner<string, string> = (array) => array.sort().join('\
 const primitiveSplitter: PrimitiveSplitter<string, string> = (string) => string.split('\x00');
 
 // These are the standard weight functions:
-const intersectingElementsCount: WeightFunction = ({intersectingElementsCount}: {intersectingElementsCount: number}) => intersectingElementsCount;
-const intersectingSetsCount: WeightFunction = ({intersectingSetsCount}: {intersectingSetsCount: number}) => intersectingSetsCount;
+const intersectingElementsCount: WeightFunction = (
+    {intersectingElementsCount}: {intersectingElementsCount: number}
+) => intersectingElementsCount;
+const intersectingSetsCount: WeightFunction = (
+    {intersectingSetsCount}: {intersectingSetsCount: number}
+) => intersectingSetsCount;
 
 const weightedSplitSetNodes = new WeightedIntersectionsSplitter(
         arrayJoiner,
@@ -158,7 +162,7 @@ const weightedSplitSetNodes = new WeightedIntersectionsSplitter(
         intersectingSetsCount,
 ).splitSets(sets);
 
-const setNodes: SetNode<string>[] = [
+weightedSplitSetNodes === [
   {
     set: new Set(['1', '2', '3']),
     rest: new Set(['1']),
@@ -249,7 +253,7 @@ const setNodes: SetNode<string>[] = [
     depth: 1,
     imports: [],
   },
-];
+]; // true
 ```
 #### Intersecting arrays containing non primitive elements
 ```ts
@@ -346,5 +350,5 @@ setNodes === [
       imports: [],
       depth: 2,
   },
-];
+]; // true
 ```
