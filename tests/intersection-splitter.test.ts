@@ -6,6 +6,7 @@ import {
     BiggestIntersectionsSplitter,
     SetNode,
     ArrayNode,
+    mapFunctionsDict,
 } from '../src';
 
 describe('Test splitting of intersections from sets', () => {
@@ -124,8 +125,7 @@ describe('Test splitting of intersections from sets', () => {
         setNodes[3].imports.push(setNodes[4]);
 
         const weightedSplitSetNodes = new WeightedIntersectionsSplitter(
-            (array) => array.sort().join('\x00'),
-            (string) => string.split('\x00'),
+            mapFunctionsDict.strings,
         ).splitSets(sets);
 
         expect(weightedSplitSetNodes).toEqual(setNodes);
@@ -189,8 +189,7 @@ describe('Test splitting of intersections from sets', () => {
         setNodesElementsCount[3].imports.push(setNodesElementsCount[4]);
 
         expect(new WeightedIntersectionsSplitter(
-            (array) => array.sort().join('\x00'),
-            (string) => string.split('\x00'),
+            mapFunctionsDict.strings,
             weightFunctions.elementsCount,
             weightFunctions.setsCount,
         ).splitSets(sets)).toEqual(setNodesElementsCount);
@@ -232,8 +231,7 @@ describe('Test splitting of intersections from sets', () => {
         setNodesSetsCount[2].imports.push(setNodesSetsCount[3]);
 
         expect(new WeightedIntersectionsSplitter(
-            (array) => array.sort().join('\x00'),
-            (string) => string.split('\x00'),
+            mapFunctionsDict.strings,
             weightFunctions.setsCount,
             weightFunctions.elementsCount,
         ).splitSets(sets)).toEqual(setNodesSetsCount);
@@ -334,8 +332,7 @@ describe('Test splitting of intersections from sets', () => {
         setNodesWeightFunctionBiggestIntersection[3].imports.push(setNodesWeightFunctionBiggestIntersection[4]);
 
         expect(new WeightedIntersectionsSplitter(
-            (array) => array.sort().join('\x00'),
-            (string) => string.split('\x00'),
+            mapFunctionsDict.strings,
             weightFunctions.setsCount,
             weightFunctions.elementsCount,
         ).splitSets(sets)).toEqual(setNodesWeightFunctionBiggestIntersection);
@@ -486,8 +483,7 @@ describe('Test splitting of intersections from arrays', () => {
         arrayNodes[3].imports.push(arrayNodes[4]);
 
         const weightedSplitSetNodes = new WeightedIntersectionsSplitter<string, string>(
-            (array) => array.sort().join('\x00'),
-            (string) => string.split('\x00'),
+            mapFunctionsDict.strings,
         ).splitArrays(arrays);
 
         expect(weightedSplitSetNodes).toEqual(arrayNodes);
@@ -551,8 +547,7 @@ describe('Test splitting of intersections from arrays', () => {
         arrayNodesElementsCount[3].imports.push(arrayNodesElementsCount[4]);
 
         expect(new WeightedIntersectionsSplitter(
-            (array) => array.sort().join('\x00'),
-            (string) => string.split('\x00'),
+            mapFunctionsDict.strings,
             weightFunctions.elementsCount,
             weightFunctions.setsCount,
         ).splitArrays(arrays)).toEqual(arrayNodesElementsCount);
@@ -594,8 +589,7 @@ describe('Test splitting of intersections from arrays', () => {
         arrayNodesSetsCount[2].imports.push(arrayNodesSetsCount[3]);
 
         expect(new WeightedIntersectionsSplitter(
-            (array) => array.sort().join('\x00'),
-            (string) => string.split('\x00'),
+            mapFunctionsDict.strings,
             weightFunctions.setsCount,
             weightFunctions.elementsCount,
         ).splitArrays(arrays)).toEqual(arrayNodesSetsCount);
@@ -696,8 +690,7 @@ describe('Test splitting of intersections from arrays', () => {
         arrayNodesWeightFunctionBiggestIntersection[3].imports.push(arrayNodesWeightFunctionBiggestIntersection[4]);
 
         expect(new WeightedIntersectionsSplitter(
-            (array) => array.sort().join('\x00'),
-            (string) => string.split('\x00'),
+            mapFunctionsDict.strings,
             weightFunctions.setsCount,
             weightFunctions.elementsCount,
         ).splitArrays(arrays)).toEqual(arrayNodesWeightFunctionBiggestIntersection);

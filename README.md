@@ -129,14 +129,17 @@ metrics === {
 
 ```
 #### Intersecting with join/split function and weight functions
+
 ```ts
 import {
-  weightFunctions,
-  WeightedIntersectionsSplitter,
-  ArrayJoiner,
-  PrimitiveSplitter,
-  WeightFunction
+    weightFunctions,
+    WeightedIntersectionsSplitter,
+    ArrayJoiner,
+    PrimitiveSplitter,
+    mapFunctionsDict,
+    WeightFunction
 } from 'intersection-splitter';
+import {arrayMapFunctions} from "./weighted-intersections-splitter";
 
 const sets = new Set([
   new Set(['1', '2', '3']),
@@ -144,23 +147,20 @@ const sets = new Set([
   new Set(['3', '4', '5']),
 ]);
 
-const arrayJoiner: ArrayJoiner<string, string> = (array) => array.sort().join('\x00');
-const primitiveSplitter: PrimitiveSplitter<string, string> = (string) => string.split('\x00');
-
 // These are the standard weight functions:
 const intersectingElementsCount: WeightFunction = (
-    {intersectingElementsCount}: {intersectingElementsCount: number}
+        {intersectingElementsCount}: { intersectingElementsCount: number }
 ) => intersectingElementsCount;
 const intersectingSetsCount: WeightFunction = (
-    {intersectingSetsCount}: {intersectingSetsCount: number}
+        {intersectingSetsCount}: { intersectingSetsCount: number }
 ) => intersectingSetsCount;
 
 const weightedSplitSetNodes = new WeightedIntersectionsSplitter(
-        arrayJoiner,
-        primitiveSplitter,
-        intersectingElementsCount,
-        intersectingSetsCount,
-).splitSets(sets);
+    mapFunctionsDict.strings,
+    intersectingElementsCount,
+    intersectingSetsCount,
+).
+splitSets(sets);
 
 weightedSplitSetNodes === [
   {
@@ -278,77 +278,77 @@ const sets = new Set([
 const setNodes = new BiggestIntersectionsSplitter(false).splitSets(sets);
 
 setNodes === [
-  {
-      set: new Set([[1], [1], [3]]),
-      rest: new Set([[1]]),
-      imports: [
-          {
-              set: new Set([[1], [3]]),
-              rest: new Set([[1]]),
-              imports: [
-                  {
-                      set: new Set([[3]]),
-                      rest: new Set([[3]]),
-                      imports: [],
-                      depth: 2,
-                  } // === setNodes[4]
-              ],
-              depth: 1,
-          }, // === setNodes[3]
-      ],
-      depth: 0,
-  },
-  {
-      set: new Set([[1], [3]]),
-      rest: new Set(),
-      imports: [
-          {
-              set: new Set([[1], [3]]),
-              rest: new Set([[1]]),
-              imports: [
-                  {
-                      set: new Set([[3]]),
-                      rest: new Set([[3]]),
-                      imports: [],
-                      depth: 2,
-                  } // === setNodes[4]
-              ],
-              depth: 1,
-          }, // === setNodes[3]
-      ],
-      depth: 0,
-  },
-  {
-      set: new Set([[3]]),
-      rest: new Set(),
-      imports: [
-          {
-            set: new Set([[3]]),
-            rest: new Set([[3]]),
-            imports: [],
-            depth: 2,
-          }, // === setNodes[4]
-      ],
-      depth: 0,
-  },
-  { // #3
-      set: new Set([[1], [3]]),
-      rest: new Set([[1]]),
-      imports: [
-          {
+    {
+        set: new Set([[1], [1], [3]]),
+        rest: new Set([[1]]),
+        imports: [
+            {
+                set: new Set([[1], [3]]),
+                rest: new Set([[1]]),
+                imports: [
+                    {
+                        set: new Set([[3]]),
+                        rest: new Set([[3]]),
+                        imports: [],
+                        depth: 2,
+                    } // === setNodes[4]
+                ],
+                depth: 1,
+            }, // === setNodes[3]
+        ],
+        depth: 0,
+    },
+    {
+        set: new Set([[1], [3]]),
+        rest: new Set(),
+        imports: [
+            {
+                set: new Set([[1], [3]]),
+                rest: new Set([[1]]),
+                imports: [
+                    {
+                        set: new Set([[3]]),
+                        rest: new Set([[3]]),
+                        imports: [],
+                        depth: 2,
+                    } // === setNodes[4]
+                ],
+                depth: 1,
+            }, // === setNodes[3]
+        ],
+        depth: 0,
+    },
+    {
+        set: new Set([[3]]),
+        rest: new Set(),
+        imports: [
+            {
               set: new Set([[3]]),
               rest: new Set([[3]]),
               imports: [],
               depth: 2,
-          } // === setNodes[4]
-      ],
-      depth: 1,
-  },
-  { // #4
-      set: new Set([[3]]),
-      rest: new Set([[3]]),
-      imports: [],
-      depth: 2,
-  },
+            }, // === setNodes[4]
+        ],
+        depth: 0,
+    },
+    { // #3
+        set: new Set([[1], [3]]),
+        rest: new Set([[1]]),
+        imports: [
+            {
+                set: new Set([[3]]),
+                rest: new Set([[3]]),
+                imports: [],
+                depth: 2,
+            } // === setNodes[4]
+        ],
+        depth: 1,
+    },
+    { // #4
+        set: new Set([[3]]),
+        rest: new Set([[3]]),
+        imports: [],
+        depth: 2,
+    },
 ]; // true
 ```

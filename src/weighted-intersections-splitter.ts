@@ -21,6 +21,28 @@ export type ArrayJoiner<T, U extends PrimitiveType> = (array: T[]) => U;
  */
 export type PrimitiveSplitter<T, U extends PrimitiveType> = (primitive: U) => T[];
 
+export type MapFunctions<T, U extends PrimitiveType> = {
+    joiner: ArrayJoiner<T, U>;
+    splitter: PrimitiveSplitter<T, U>;
+};
+
+/**
+ * Some bijective mappings and their inverse.
+ */
+export const mapFunctionsDict: {
+    strings: MapFunctions<string, string>;
+    integers: MapFunctions<number, string>;
+} = {
+    strings: {
+        joiner: (array: string[]): string => array.sort().join('\x00'),
+        splitter: (primitive: string): string[] => primitive.split('\x00'),
+    },
+    integers: {
+        joiner: (array: number[]): string => array.sort().map((number) => number.toString()).join(','),
+        splitter: (primitive: string): number[] => primitive.split(',').map((str) => parseInt(str, 10)),
+    },
+};
+
 /**
  * The weight function to be used for the construction of the `IntersectionByWeight` class. The intersectingSetsCount is not accurate when there are
  * intersections which are subsets of other intersections and will therefore mostly not find the optimal solution to this strategy. The correct implementation
@@ -65,15 +87,13 @@ type WeightIntersectionMap <U extends PrimitiveType> = Map<number, Set<U>>;
  */
 export class WeightedIntersectionsSplitter<T, U extends PrimitiveType> {
     /**
-     * @param join - The bijective function used internally to map the elements of a set to a primitive type.
-     * @param split - The inverse function to joiner. It maps primitive types to the elements in a set.
+     * @param mapFunctions - The bijective mapping and reverse bijective mapping from the element of the arrays to `PrimitiveType`.
      * @param primaryWeight - The primary weight function, default is the number of elements in the set.
      * @param secondaryWeight - The secondary weight function to use when the primary weight function results in a maximum for more than one set.
      * Default is the number of sets which include the intersection.
      */
     constructor(
-        private join: ArrayJoiner<T, U>,
-        private split: PrimitiveSplitter<T, U>,
+        private mapFunctions: MapFunctions<T, U>,
         private primaryWeight: WeightFunction = weightFunctions.elementsCount,
         private secondaryWeight: WeightFunction = weightFunctions.setsCount,
     ) {}
@@ -109,8 +129,8 @@ export class WeightedIntersectionsSplitter<T, U extends PrimitiveType> {
             );
             let depth = 1;
             const newIntersectingObj = <SetNode<T>>{
-                set: new Set(this.split(highestWeightIntersection)),
-                rest: new Set(this.split(highestWeightIntersection)),
+                set: new Set(this.mapFunctions.splitter(highestWeightIntersection)),
+                rest: new Set(this.mapFunctions.splitter(highestWeightIntersection)),
                 depth,
                 imports: [],
             };
@@ -123,7 +143,7 @@ export class WeightedIntersectionsSplitter<T, U extends PrimitiveType> {
                 this.filterFromSet(setNode.rest, (element) => !newIntersectingObj.set.has(element));
                 setNode.imports.push(newIntersectingObj);
             });
-            const highestWeightIntersectionElements = this.split(highestWeightIntersection);
+            const highestWeightIntersectionElements = this.mapFunctions.splitter(highestWeightIntersection);
             otherAffectedSets.forEach((set) => {
                 if (highestWeightIntersectionElements.every((element) => set.has(element))) {
                     depth = this.updateSetObj(set, setNodeMap, newIntersectingObj, depth);
@@ -163,7 +183,7 @@ export class WeightedIntersectionsSplitter<T, U extends PrimitiveType> {
             orderedSets.slice(i + 1).forEach((set2) => {
                 const intersectedSet = intersectSets(set1, set2);
                 if (intersectedSet.size > 0) {
-                    const intersectionId = this.join([...intersectedSet]);
+                    const intersectionId = this.mapFunctions.joiner([...intersectedSet]);
                     const intersectionMapEntry = intersectionMap.get(intersectionId);
                     if (intersectionMapEntry) {
                         intersectionMapEntry.push([set1, set2]);
@@ -219,7 +239,7 @@ export class WeightedIntersectionsSplitter<T, U extends PrimitiveType> {
     private getWeightIntersectionsMap(intersectionMapSet: IntersectionMapSet<T, U>): WeightIntersectionMap<U> {
         const weightIntersectionMap: WeightIntersectionMap<U> = new Map();
         intersectionMapSet.forEach((mapSet, intersection) => {
-            const intersectingElementsCount = this.split(intersection).length;
+            const intersectingElementsCount = this.mapFunctions.splitter(intersection).length;
             const intersectingSetsCount = mapSet.size;
             const weight = this.primaryWeight({intersectingElementsCount, intersectingSetsCount});
             const intersections = weightIntersectionMap.get(weight);
@@ -242,7 +262,7 @@ export class WeightedIntersectionsSplitter<T, U extends PrimitiveType> {
         let highestWeightIntersection: U = maxWeightIntersections.keys().next().value;
         if (maxWeightIntersections.size > 1) {
             maxWeightIntersections.forEach((intersection) => {
-                const intersectingElementsCount = this.split(intersection).length;
+                const intersectingElementsCount = this.mapFunctions.splitter(intersection).length;
                 const intersectingSetsCount = (<Map<Set<T>, number>>intersectionMapSet.get(intersection)).size;
                 const secondaryWeight = this.secondaryWeight({intersectingElementsCount, intersectingSetsCount});
                 if (secondaryWeight > maxSecondaryWeight) {
@@ -261,12 +281,12 @@ export class WeightedIntersectionsSplitter<T, U extends PrimitiveType> {
         intersectionMapSet: IntersectionMapSet<T, U>,
     ): {otherAffectedIntersections: Set<U>, otherAffectedSets: Sets<T>} {
         const otherAffectedIntersections: Set<U> = new Set();
-        const highestWeightedIntersectionElements = this.split(highestWeightIntersection);
+        const highestWeightedIntersectionElements = this.mapFunctions.splitter(highestWeightIntersection);
         const otherAffectedSets: Sets<T> = new Set();
         intersectingSets.forEach((set) => {
             const affectedIntersections = <Set<U>>setToIntersectionMap.get(set);
             affectedIntersections.forEach((intersection) => {
-                if (this.split(intersection).some((element) => highestWeightedIntersectionElements.includes(element))) {
+                if (this.mapFunctions.splitter(intersection).some((element) => highestWeightedIntersectionElements.includes(element))) {
                     otherAffectedIntersections.add(intersection);
                     const affectedSets = new Set((<Map<Set<T>, number>>intersectionMapSet.get(intersection)).keys());
                     affectedSets.forEach((affectedSet) => {
@@ -342,7 +362,7 @@ export class WeightedIntersectionsSplitter<T, U extends PrimitiveType> {
         if (setCount > 1) {
             setMap.set(set, setCount - 1);
         } else {
-            const intersectingElementsCount = this.split(key).length;
+            const intersectingElementsCount = this.mapFunctions.splitter(key).length;
             const intersectingSetsCount = setMap.size;
             const weight = this.primaryWeight({intersectingElementsCount, intersectingSetsCount});
             this.removeFromSetOrDeleteFromMap(weightMap, weight, key);
@@ -426,7 +446,7 @@ export class WeightedIntersectionsSplitter<T, U extends PrimitiveType> {
     ): void {
         const intersection = intersectSets(set1, set2);
         if (intersection.size > 0) {
-            const intersectionId = this.join([...intersection]);
+            const intersectionId = this.mapFunctions.joiner([...intersection]);
             const intersectingSets = intersectionMap.get(intersectionId);
             if (intersectingSets) {
                 intersectingSets.push([set1, set2]);
